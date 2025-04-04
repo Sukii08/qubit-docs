@@ -8,14 +8,16 @@ servers:
   - url: http://170.64.139.10:8080
     description: Authentication Server 
   - url: http://100.24.228.222/
-    description: API Analytics Server 
+    description: API Analytics Server
+  - url: http://134.199.163.172/
+    description: Data Retrieval 
 
 tags:
   - name: Authentication
     description: Endpoints for API key generation and validation
-  - name: DataRetrieval
+  - name: Data Retrieval
     description: Endpoints for data retrieval 
-  - name: AnalyticalModel
+  - name: Analytical Model
     description: Endpoints for sentiment analysis and model status
 
 paths:
@@ -102,7 +104,7 @@ paths:
   /company/{name}:
     get:
       tags:
-        - DataRetrieval
+        - Data Retrieval
       summary: Get news articles for a given company
       description: |
         Returns news events for the specified company name, filtered by optional start and end dates.
@@ -157,7 +159,7 @@ paths:
   /status:
     get:
       tags:
-        - AnalyticalModel
+        - Analytical Model
       summary: Service status check
       description: Returns the status of the analytical model service
       responses:
@@ -178,7 +180,7 @@ paths:
   /predict:
     post:
       tags:
-        - AnalyticalModel
+        - Analytical Model
       summary: Predict sentiment for news headlines
       requestBody:
         required: true
