@@ -1,0 +1,234 @@
+openapi: 3.0.0
+info:
+  title:  QUBIT Microservices 
+  version: 1.0.0
+  description: API for authentication, data retrieval, and sentiment prediction
+
+servers:
+  - url: http://170.64.139.10:8080
+    description: Authentication Server 
+  - url: http://100.24.228.222/
+    description: API Analytics Server 
+
+tags:
+  - name: Authentication
+    description: Endpoints for API key generation and validation
+  - name: DataRetrieval
+    description: Endpoints for data retrieval 
+  - name: AnalyticalModel
+    description: Endpoints for sentiment analysis and model status
+
+paths:
+  /:
+    get:
+      tags:
+        - Authentication
+      summary: Welcome message
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Welcome to the Flask API!
+
+  /generate:
+    post:
+      tags:
+        - Authentication
+      summary: Generate API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+      responses:
+        '200':
+          description: Successfully created API key
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Successfully created key
+                  apiKey:
+                    type: string
+                    example: abc123xyz
+                  expiryTill:
+                    type: string
+                    example: 2025-04-04T23:59:59Z
+        '400':
+          description: Missing or incorrect input
+        '500':
+          description: Internal server error
+
+  /validate:
+    post:
+      tags:
+        - Authentication
+      summary: Validate API key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - apiKey
+              properties:
+                apiKey:
+                  type: string
+                  example: abc123xyz
+      responses:
+        '200':
+          description: API key is valid
+        '400':
+          description: Invalid API key
+
+  /company/{name}:
+    get:
+      tags:
+        - DataRetrieval
+      summary: Get news articles for a given company
+      description: |
+        Returns news events for the specified company name, filtered by optional start and end dates.
+        Requires a valid API key.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Company name to search for
+          schema:
+            type: string
+            example: Tesla
+        - name: api_key
+          in: query
+          required: true
+          description: API key for authentication
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Max number of articles
+          schema:
+            type: integer
+            default: 10
+        - name: start_date
+          in: query
+          required: false
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: false
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: News data successfully retrieved
+        '400':
+          description: Invalid or missing API key
+        '401':
+          description: Unauthorized - API key failed
+        '403':
+          description: Forbidden
+        '404':
+          description: No news found
+
+  /status:
+    get:
+      tags:
+        - AnalyticalModel
+      summary: Service status check
+      description: Returns the status of the analytical model service
+      responses:
+        '200':
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Server is running
+                  port:
+                    type: integer
+                    example: 8082
+
+  /predict:
+    post:
+      tags:
+        - AnalyticalModel
+      summary: Predict sentiment for news headlines
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - api_key
+                - titles
+              properties:
+                api_key:
+                  type: string
+                  example: abc123xyz
+                titles:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Tesla launches new product", "Market crashes amid uncertainty"]
+      responses:
+        '200':
+          description: Sentiment prediction results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  total_positive:
+                    type: number
+                    format: float
+                  total_negative:
+                    type: number
+                    format: float
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        sentiment:
+                          type: string
+                        score:
+                          type: number
+                          format: float
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized - API key validation failed
+        '403':
+          description: Forbidden
